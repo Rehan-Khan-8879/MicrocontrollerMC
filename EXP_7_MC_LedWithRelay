@@ -1,0 +1,56 @@
+ORG 0000H
+SJMP MAIN
+
+ORG 0003H
+ISR_INT0:
+    SETB P1.0          ; LED ON
+
+    MOV R7, #60        ; 60 seconds
+
+SEC_LOOP:
+    ACALL DELAY_1SEC
+    DJNZ R7, SEC_LOOP
+
+    CLR P1.0           ; LED OFF
+    
+RETI
+
+
+
+MAIN:
+    MOV P1, #00H
+
+    SETB IT0
+    SETB EX0
+    SETB EA
+
+HERE:
+    SJMP HERE
+
+; 1 Second Delay
+DELAY_1SEC:
+    MOV R6, #20        ; 20 × 50ms = 1 sec
+
+LOOP_50MS:
+    ACALL DELAY_50MS
+    DJNZ R6, LOOP_50MS
+    RET
+
+
+; 50 ms Delay using Timer0
+DELAY_50MS:
+    MOV TMOD, #01H     ; Timer0 Mode1 (16-bit)
+
+    MOV TH0, #4CH      ; Load value for 50ms
+    MOV TL0, #00H
+
+    SETB TR0           ; Start timer
+
+WAIT:
+    JNB TF0, WAIT      ; Wait till overflow
+
+    CLR TR0
+    CLR TF0
+    RET
+
+END
